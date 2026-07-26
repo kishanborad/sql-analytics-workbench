@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-navy text-surface font-sans antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: rgba(99, 102, 241, 0.3);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+@layer components {
+  .glass-surface {
+    background: rgba(20, 20, 30, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-surface:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+  }
+
+  .focus-glow:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+  }
+}
