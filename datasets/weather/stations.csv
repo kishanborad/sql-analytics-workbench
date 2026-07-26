@@ -1,0 +1,31 @@
+id,name,city,country,latitude,longitude,elevation
+1,New York Airport,New York,US,40.6112,-73.9659,34
+2,New York Downtown,New York,US,40.7612,-73.9929,39
+3,New York Harbor,New York,US,40.6815,-74.0094,150
+4,London Airport,London,UK,51.5674,-0.1697,46
+5,London Downtown,London,UK,51.4663,-0.0447,197
+6,London Harbor,London,UK,51.489,-0.0979,244
+7,Tokyo Airport,Tokyo,JP,35.6113,139.634,202
+8,Tokyo Downtown,Tokyo,JP,35.7394,139.7599,153
+9,Tokyo Harbor,Tokyo,JP,35.772,139.6188,348
+10,Sydney Airport,Sydney,AU,-33.7926,151.3031,333
+11,Sydney Downtown,Sydney,AU,-33.8954,151.2999,285
+12,Sydney Harbor,Sydney,AU,-33.795,151.1383,23
+13,Berlin Airport,Berlin,DE,52.421,13.4193,277
+14,Berlin Downtown,Berlin,DE,52.5295,13.317,109
+15,Berlin Harbor,Berlin,DE,52.5697,13.4807,178
+16,Mumbai Airport,Mumbai,IN,19.0223,72.9611,264
+17,Mumbai Downtown,Mumbai,IN,19.0085,72.8168,317
+18,Mumbai Harbor,Mumbai,IN,19.1469,72.8189,94
+19,São Paulo Airport,São Paulo,BR,-23.5158,-46.6165,29
+20,São Paulo Downtown,São Paulo,BR,-23.4797,-46.5435,283
+21,São Paulo Harbor,São Paulo,BR,-23.5577,-46.6201,150
+22,Cairo Airport,Cairo,EG,30.0743,31.1901,103
+23,Cairo Downtown,Cairo,EG,30.0851,31.2374,171
+24,Cairo Harbor,Cairo,EG,30.0114,31.2743,122
+25,Toronto Airport,Toronto,CA,43.57,-79.3561,101
+26,Toronto Downtown,Toronto,CA,43.6136,-79.3899,317
+27,Toronto Harbor,Toronto,CA,43.6819,-79.3413,80
+28,Seoul Airport,Seoul,KR,37.5831,126.9529,163
+29,Seoul Downtown,Seoul,KR,37.6617,126.9137,162
+30,Seoul Harbor,Seoul,KR,37.5192,126.9243,330
