@@ -3,6 +3,7 @@ import TopBar from './layout/TopBar';
 import SplitPane from './layout/SplitPane';
 import SqlEditor from './editor/SqlEditor';
 import QueryHistory from './editor/QueryHistory';
+import ResultTabs from './results/ResultTabs';
 import { DATASETS } from './db/datasets';
 import { initDuckDB, loadDataset, executeQuery } from './db/engine';
 import type { QueryHistoryEntry, QueryResult } from './types';
@@ -120,13 +121,11 @@ export default function App() {
           </div>
         }
         right={
-          <div className="flex-1 flex items-center justify-center text-dimmed text-sm">
-            {error
-              ? error
-              : currentResult
-                ? `${currentResult.rowCount} rows in ${currentResult.executionMs}ms`
-                : 'Results (coming next)'}
-          </div>
+          <ResultTabs
+            result={currentResult}
+            error={error}
+            dataset={dataset}
+          />
         }
       />
     </div>
