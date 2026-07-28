@@ -1,23 +1,22 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { sql } from '@codemirror/lang-sql';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { autocompletion } from '@codemirror/autocomplete';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import type { StarterQuery } from '../types';
 
 const sqlTheme = EditorView.theme({
   '&': {
     backgroundColor: '#0a0a1a',
     color: '#f4f4f6',
-    fontSize: '13px',
+    fontSize: '12px',
     fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
   },
   '.cm-content': {
     caretColor: '#818cf8',
-    padding: '12px',
+    padding: '8px 10px',
   },
   '.cm-cursor': { borderLeftColor: '#818cf8' },
   '.cm-selectionBackground': { backgroundColor: 'rgba(99, 102, 241, 0.2) !important' },
@@ -25,7 +24,8 @@ const sqlTheme = EditorView.theme({
     backgroundColor: '#0a0a1a',
     color: '#64648a',
     border: 'none',
-    paddingLeft: '8px',
+    paddingLeft: '4px',
+    minWidth: '32px',
   },
   '.cm-activeLine': { backgroundColor: 'rgba(255, 255, 255, 0.03)' },
   '.cm-activeLineGutter': { backgroundColor: 'rgba(255, 255, 255, 0.03)' },
@@ -59,10 +59,10 @@ const sqlHighlight = HighlightStyle.define([
 interface SqlEditorProps {
   initialSql: string;
   onRun: (sql: string) => void;
-  starterQueries: StarterQuery[];
+  running: boolean;
 }
 
-export default function SqlEditor({ initialSql, onRun, starterQueries }: SqlEditorProps) {
+export default function SqlEditor({ initialSql, onRun, running }: SqlEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 
@@ -95,6 +95,7 @@ export default function SqlEditor({ initialSql, onRun, starterQueries }: SqlEdit
         autocompletion(),
         syntaxHighlighting(sqlHighlight),
         sqlTheme,
+        lineNumbers(),
         EditorView.lineWrapping,
       ],
     });
@@ -108,39 +109,23 @@ export default function SqlEditor({ initialSql, onRun, starterQueries }: SqlEdit
     return () => view.destroy();
   }, [initialSql, handleRun]);
 
-  const handleChipClick = (query: StarterQuery) => {
-    if (viewRef.current) {
-      viewRef.current.dispatch({
-        changes: { from: 0, to: viewRef.current.state.doc.length, insert: query.sql },
-      });
-    }
-    onRun(query.sql);
-  };
-
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 min-h-0 overflow-hidden border-b border-white/[0.08]">
-        <div ref={editorRef} className="h-full overflow-auto" />
-      </div>
-
-      <div className="px-3 py-2 flex items-center justify-between gap-2">
-        <div className="flex gap-1.5 overflow-x-auto flex-nowrap sm:flex-wrap sm:overflow-visible min-w-0 flex-1">
-          {starterQueries.map((q) => (
-            <button
-              key={q.label}
-              onClick={() => handleChipClick(q)}
-              className="px-2.5 py-1 rounded-full text-[10px] text-accent border border-accent/25 bg-accent/10 hover:bg-accent/20 transition-colors duration-200 cursor-pointer whitespace-nowrap"
-            >
-              {q.label}
-            </button>
-          ))}
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/[0.08]">
+        <span className="text-[10px] text-dimmed uppercase tracking-wider font-medium">SQL Editor</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-dimmed hidden sm:block">Ctrl+Enter to run</span>
+          <button
+            onClick={handleRun}
+            disabled={running}
+            className="gradient-accent text-white text-[11px] font-medium px-3 py-1 rounded-md shadow-glow hover:shadow-glow-strong hover:scale-105 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+          >
+            {running ? 'Running...' : 'Run \u25B6'}
+          </button>
         </div>
-        <button
-          onClick={handleRun}
-          className="gradient-accent text-white text-xs font-medium px-4 py-1.5 rounded-lg shadow-glow hover:shadow-glow-strong hover:scale-105 transition-all duration-200 cursor-pointer flex-shrink-0"
-        >
-          Run ▶
-        </button>
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div ref={editorRef} className="h-full overflow-auto" />
       </div>
     </div>
   );

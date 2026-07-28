@@ -3,7 +3,9 @@ import TopBar from './layout/TopBar';
 import SplitPane from './layout/SplitPane';
 import SqlEditor from './editor/SqlEditor';
 import QueryHistory from './editor/QueryHistory';
+import DatasetBrowser from './results/DatasetBrowser';
 import ResultTabs from './results/ResultTabs';
+import SchemaTree from './results/SchemaTree';
 import { DATASETS } from './db/datasets';
 import { initDuckDB, loadDataset, executeQuery } from './db/engine';
 import type { QueryHistoryEntry, QueryResult } from './types';
@@ -16,6 +18,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [dbReady, setDbReady] = useState(false);
   const [running, setRunning] = useState(false);
+  const [showSchema, setShowSchema] = useState(false);
   const dbRef = useRef<Awaited<ReturnType<typeof initDuckDB>> | null>(null);
 
   const dataset = DATASETS.find((d) => d.id === datasetId) ?? DATASETS[0];
@@ -55,6 +58,7 @@ export default function App() {
   const handleRun = useCallback(async (sqlText: string) => {
     setError(null);
     setRunning(true);
+    setCurrentSql(sqlText);
     try {
       const db = await ensureDb();
       if (!dbReady) {
@@ -94,8 +98,14 @@ export default function App() {
 
   const handleHistorySelect = useCallback((entry: QueryHistoryEntry) => {
     setCurrentSql(entry.sql);
-    if (entry.result) setCurrentResult(entry.result);
-    if (entry.error) setError(entry.error);
+    if (entry.result) {
+      setCurrentResult(entry.result);
+      setError(null);
+    }
+    if (entry.error) {
+      setError(entry.error);
+      setCurrentResult(null);
+    }
   }, []);
 
   const handleClearHistory = useCallback(() => {
@@ -107,31 +117,44 @@ export default function App() {
       <TopBar
         dataset={dataset}
         onDatasetChange={handleDatasetChange}
-        onClearHistory={handleClearHistory}
+        onRunQuery={handleRun}
       />
       <SplitPane
         left={
-          <div className="flex flex-col h-full">
-            <div className="flex-1 min-h-0">
+          <div className="flex flex-col h-full relative">
+            <div className="h-[50%] min-h-[140px]">
               <SqlEditor
                 key={currentSql}
                 initialSql={currentSql}
                 onRun={handleRun}
-                starterQueries={dataset.starterQueries}
+                running={running}
               />
             </div>
-            <div className="h-px bg-white/[0.08]" />
-            <div className="h-[35%] min-h-[120px]">
-              <QueryHistory entries={history} onSelect={handleHistorySelect} />
+            <div className="flex items-center justify-between px-3 py-1 border-y border-white/[0.08]">
+              <span className="text-[10px] text-dimmed uppercase tracking-wider font-medium">
+                {showSchema ? 'Schema' : 'Data'}
+              </span>
+              <button
+                onClick={() => setShowSchema(!showSchema)}
+                className="text-[10px] text-accent hover:text-accent-mid cursor-pointer transition-colors"
+              >
+                {showSchema ? 'Show data' : 'Show schema'}
+              </button>
             </div>
+            <div className="flex-1 min-h-0">
+              {showSchema ? (
+                <SchemaTree dataset={dataset} />
+              ) : (
+                <DatasetBrowser dataset={dataset} dbReady={dbReady} />
+              )}
+            </div>
+            <QueryHistory entries={history} onSelect={handleHistorySelect} onClear={handleClearHistory} />
           </div>
         }
         right={
           <ResultTabs
             result={currentResult}
             error={error}
-            dataset={dataset}
-            dbReady={dbReady}
             running={running}
           />
         }
