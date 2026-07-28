@@ -30,9 +30,9 @@ export async function loadDataset(
 
   try {
     const existing = await conn.query(
-      "SELECT name FROM information_schema.tables WHERE table_schema = 'main'",
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'",
     );
-    const tableNames = existing.toArray().map((row) => (row as Record<string, unknown>).name as string);
+    const tableNames = existing.toArray().map((row) => (row as Record<string, unknown>).table_name as string);
     for (const name of tableNames) {
       await conn.query(`DROP TABLE IF EXISTS "${name}"`);
     }
