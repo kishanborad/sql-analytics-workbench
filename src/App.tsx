@@ -121,7 +121,7 @@ export default function App() {
       />
       <SplitPane
         left={
-          <div className="flex flex-col h-full relative">
+          <div className="flex flex-col h-full">
             <div className="h-[50%] min-h-[140px]">
               <SqlEditor
                 key={currentSql}
@@ -130,7 +130,7 @@ export default function App() {
                 running={running}
               />
             </div>
-            <div className="flex items-center justify-between px-3 py-1 border-y border-white/[0.08]">
+            <div className="flex items-center justify-between px-3 py-1 border-y border-white/[0.08] flex-shrink-0">
               <span className="text-[10px] text-dimmed uppercase tracking-wider font-medium">
                 {showSchema ? 'Schema' : 'Data'}
               </span>
@@ -141,14 +141,13 @@ export default function App() {
                 {showSchema ? 'Show data' : 'Show schema'}
               </button>
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-hidden">
               {showSchema ? (
                 <SchemaTree dataset={dataset} />
               ) : (
                 <DatasetBrowser dataset={dataset} dbReady={dbReady} />
               )}
             </div>
-            <QueryHistory entries={history} onSelect={handleHistorySelect} onClear={handleClearHistory} />
           </div>
         }
         right={
@@ -159,6 +158,7 @@ export default function App() {
           />
         }
       />
+      <QueryHistory entries={history} onSelect={handleHistorySelect} onClear={handleClearHistory} />
     </div>
   );
 }

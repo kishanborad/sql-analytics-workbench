@@ -11,18 +11,18 @@ export default function QueryHistory({ entries, onSelect, onClear }: QueryHistor
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-full relative">
+    <>
       <button
         onClick={() => setOpen(!open)}
-        className="absolute top-2 right-0 z-10 flex items-center gap-1 px-2 py-1 rounded-l-md glass-surface text-[10px] text-dimmed hover:text-surface transition-colors cursor-pointer"
-        style={{ writingMode: open ? undefined : 'vertical-rl' }}
+        className="fixed top-1/2 right-0 z-30 -translate-y-1/2 px-1.5 py-3 rounded-l-md glass-surface text-[10px] text-dimmed hover:text-surface transition-colors cursor-pointer border-r-0"
+        style={{ writingMode: 'vertical-rl' }}
       >
-        {open ? '\u2715' : '\u25C0'} History {entries.length > 0 && `(${entries.length})`}
+        {'\u25C0'} History {entries.length > 0 && `(${entries.length})`}
       </button>
 
       {open && (
-        <div className="absolute top-0 right-0 bottom-0 w-64 glass-surface border-l border-white/[0.08] z-20 flex flex-col shadow-glass">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
+        <div className="fixed top-0 right-0 bottom-0 w-72 z-40 glass-surface border-l border-white/[0.08] flex flex-col shadow-glass">
+          <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.08]">
             <span className="text-[10px] text-dimmed uppercase tracking-wider font-medium">Query Log</span>
             <div className="flex items-center gap-2">
               {entries.length > 0 && (
@@ -35,9 +35,9 @@ export default function QueryHistory({ entries, onSelect, onClear }: QueryHistor
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="text-xs text-dimmed hover:text-surface cursor-pointer"
+                className="text-sm text-dimmed hover:text-surface cursor-pointer leading-none"
               >
-                \u2715
+                {'\u2715'}
               </button>
             </div>
           </div>
@@ -51,7 +51,7 @@ export default function QueryHistory({ entries, onSelect, onClear }: QueryHistor
               entries.map((entry) => (
                 <button
                   key={entry.id}
-                  onClick={() => onSelect(entry)}
+                  onClick={() => { onSelect(entry); setOpen(false); }}
                   className="text-left rounded-md px-2.5 py-2 cursor-pointer hover:bg-white/[0.04] transition-all duration-200 group border border-transparent hover:border-white/[0.08]"
                 >
                   <div className="flex items-center justify-between mb-0.5">
@@ -59,10 +59,10 @@ export default function QueryHistory({ entries, onSelect, onClear }: QueryHistor
                       {new Date(entry.timestamp).toLocaleTimeString()}
                     </span>
                     {entry.error ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400">\u2717 error</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400">{'\u2717'} error</span>
                     ) : (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400">
-                        \u2713 {entry.result?.rowCount}r · {entry.result?.executionMs}ms
+                        {'\u2713'} {entry.result?.rowCount}r {'\u00B7'} {entry.result?.executionMs}ms
                       </span>
                     )}
                   </div>
@@ -75,6 +75,13 @@ export default function QueryHistory({ entries, onSelect, onClear }: QueryHistor
           </div>
         </div>
       )}
-    </div>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-30 bg-black/30"
+          onClick={() => setOpen(false)}
+        />
+      )}
+    </>
   );
 }
