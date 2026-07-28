@@ -44,37 +44,58 @@ export const DATASETS: DatasetInfo[] = [
     ],
     starterQueries: [
       {
-        label: 'Top 5 customers by spend',
-        sql: `SELECT c.name, SUM(o.total) AS total_spent
-FROM customers c
-JOIN orders o ON c.id = o.customer_id
-GROUP BY c.name
-ORDER BY total_spent DESC
-LIMIT 5`,
+        label: 'Revenue by category (pie)',
+        sql: `SELECT p.category, ROUND(SUM(o.total), 2) AS revenue
+FROM orders o
+JOIN products p ON o.product_id = p.id
+WHERE o.status != 'cancelled'
+GROUP BY p.category
+ORDER BY revenue DESC`,
       },
       {
         label: 'Monthly revenue trend',
         sql: `SELECT DATE_TRUNC('month', CAST(order_date AS DATE)) AS month,
-       SUM(total) AS revenue
+       ROUND(SUM(total), 2) AS revenue,
+       COUNT(*) AS order_count
 FROM orders
 WHERE status != 'cancelled'
 GROUP BY month
 ORDER BY month`,
       },
       {
-        label: 'Orders by status',
+        label: 'Top 10 customers by lifetime value',
+        sql: `SELECT c.name AS customer,
+       c.country,
+       COUNT(o.id) AS orders,
+       ROUND(SUM(o.total), 2) AS lifetime_value,
+       ROUND(AVG(o.total), 2) AS avg_order
+FROM customers c
+JOIN orders o ON c.id = o.customer_id
+WHERE o.status != 'cancelled'
+GROUP BY c.name, c.country
+ORDER BY lifetime_value DESC
+LIMIT 10`,
+      },
+      {
+        label: 'Country × status breakdown (heatmap)',
+        sql: `SELECT c.country, o.status, COUNT(*) AS order_count
+FROM orders o
+JOIN customers c ON o.customer_id = c.id
+GROUP BY c.country, o.status
+ORDER BY c.country, o.status`,
+      },
+      {
+        label: 'Orders by status (pie)',
         sql: `SELECT status, COUNT(*) AS count
 FROM orders
 GROUP BY status
 ORDER BY count DESC`,
       },
       {
-        label: 'Avg order value by category',
-        sql: `SELECT p.category, ROUND(AVG(o.total), 2) AS avg_order
-FROM orders o
-JOIN products p ON o.product_id = p.id
-GROUP BY p.category
-ORDER BY avg_order DESC`,
+        label: 'Price vs stock (scatter)',
+        sql: `SELECT p.name, p.price, p.stock, p.category
+FROM products p
+ORDER BY p.price DESC`,
       },
     ],
   },
@@ -123,41 +144,59 @@ ORDER BY avg_order DESC`,
     ],
     starterQueries: [
       {
-        label: 'Commits per author per month',
-        sql: `SELECT author,
-       DATE_TRUNC('month', CAST(committed_at AS DATE)) AS month,
-       COUNT(*) AS commits
-FROM commits
-GROUP BY author, month
-ORDER BY month, commits DESC`,
+        label: 'Stars by language (pie)',
+        sql: `SELECT language, SUM(stars) AS total_stars
+FROM repos
+GROUP BY language
+ORDER BY total_stars DESC`,
       },
       {
-        label: 'Most starred repos by language',
-        sql: `SELECT language, name, stars
-FROM repos
-ORDER BY stars DESC
-LIMIT 10`,
+        label: 'Author × language activity (heatmap)',
+        sql: `SELECT co.author, r.language, COUNT(*) AS commits
+FROM commits co
+JOIN repos r ON co.repo_id = r.id
+GROUP BY co.author, r.language
+ORDER BY commits DESC`,
+      },
+      {
+        label: 'Weekly commit activity',
+        sql: `SELECT DATE_TRUNC('week', CAST(committed_at AS DATE)) AS week,
+       COUNT(*) AS commits,
+       SUM(additions) AS lines_added,
+       SUM(deletions) AS lines_removed
+FROM commits
+GROUP BY week
+ORDER BY week`,
       },
       {
         label: 'PR merge rate by repo',
-        sql: `SELECT r.name,
+        sql: `SELECT r.name AS repo,
        COUNT(*) AS total_prs,
        COUNT(CASE WHEN pr.status = 'merged' THEN 1 END) AS merged,
-       ROUND(COUNT(CASE WHEN pr.status = 'merged' THEN 1 END) * 100.0 / COUNT(*), 1) AS merge_pct
+       ROUND(COUNT(CASE WHEN pr.status = 'merged' THEN 1 END) * 100.0 / COUNT(*), 1) AS merge_rate_pct
 FROM pull_requests pr
 JOIN repos r ON pr.repo_id = r.id
 GROUP BY r.name
-ORDER BY merge_pct DESC`,
+ORDER BY merge_rate_pct DESC`,
       },
       {
-        label: 'Lines changed distribution',
+        label: 'Top contributors by churn',
         sql: `SELECT author,
-       SUM(additions) AS total_additions,
-       SUM(deletions) AS total_deletions,
-       SUM(additions + deletions) AS total_changes
+       COUNT(*) AS commits,
+       SUM(additions) AS additions,
+       SUM(deletions) AS deletions,
+       SUM(additions + deletions) AS total_churn,
+       ROUND(SUM(deletions) * 100.0 / NULLIF(SUM(additions + deletions), 0), 1) AS delete_pct
 FROM commits
 GROUP BY author
-ORDER BY total_changes DESC`,
+ORDER BY total_churn DESC
+LIMIT 10`,
+      },
+      {
+        label: 'Stars vs forks (scatter)',
+        sql: `SELECT name, stars, forks, language
+FROM repos
+ORDER BY stars DESC`,
       },
     ],
   },
@@ -194,36 +233,61 @@ ORDER BY total_changes DESC`,
     ],
     starterQueries: [
       {
-        label: 'Avg temperature by city',
+        label: 'Avg high temp by city (bar)',
         sql: `SELECT s.city,
        ROUND(AVG(r.temp_high), 1) AS avg_high,
-       ROUND(AVG(r.temp_low), 1) AS avg_low
+       ROUND(AVG(r.temp_low), 1) AS avg_low,
+       ROUND(AVG(r.wind_speed), 1) AS avg_wind
 FROM readings r
 JOIN stations s ON r.station_id = s.id
 GROUP BY s.city
 ORDER BY avg_high DESC`,
       },
       {
-        label: 'Precipitation over time',
-        sql: `SELECT CAST(date AS DATE) AS day,
-       ROUND(AVG(precipitation), 1) AS avg_precip
-FROM readings
+        label: 'Daily temperature trend (line)',
+        sql: `SELECT CAST(r.date AS DATE) AS day,
+       ROUND(AVG(r.temp_high), 1) AS avg_high,
+       ROUND(AVG(r.temp_low), 1) AS avg_low
+FROM readings r
 GROUP BY day
 ORDER BY day`,
       },
       {
-        label: 'Hottest days across stations',
-        sql: `SELECT s.name, r.date, r.temp_high
+        label: 'City × country readings (heatmap)',
+        sql: `SELECT s.city, s.country, COUNT(*) AS readings
 FROM readings r
 JOIN stations s ON r.station_id = s.id
-ORDER BY r.temp_high DESC
-LIMIT 10`,
+GROUP BY s.city, s.country
+ORDER BY readings DESC`,
       },
       {
-        label: 'Wind speed vs temperature',
-        sql: `SELECT temp_high, wind_speed
-FROM readings
-ORDER BY temp_high`,
+        label: 'Temperature vs wind speed (scatter)',
+        sql: `SELECT r.temp_high, r.wind_speed, s.city
+FROM readings r
+JOIN stations s ON r.station_id = s.id`,
+      },
+      {
+        label: 'Precipitation by country (pie)',
+        sql: `SELECT s.country,
+       ROUND(SUM(r.precipitation), 1) AS total_precip
+FROM readings r
+JOIN stations s ON r.station_id = s.id
+GROUP BY s.country
+ORDER BY total_precip DESC`,
+      },
+      {
+        label: 'Extreme weather days',
+        sql: `SELECT s.name AS station,
+       s.city,
+       CAST(r.date AS DATE) AS day,
+       r.temp_high,
+       r.wind_speed,
+       r.precipitation
+FROM readings r
+JOIN stations s ON r.station_id = s.id
+WHERE r.temp_high > 35 OR r.wind_speed > 40 OR r.precipitation > 30
+ORDER BY r.temp_high DESC
+LIMIT 20`,
       },
     ],
   },

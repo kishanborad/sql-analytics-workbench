@@ -15,6 +15,7 @@ export default function App() {
   const [currentResult, setCurrentResult] = useState<QueryResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dbReady, setDbReady] = useState(false);
+  const [running, setRunning] = useState(false);
   const dbRef = useRef<Awaited<ReturnType<typeof initDuckDB>> | null>(null);
 
   const dataset = DATASETS.find((d) => d.id === datasetId) ?? DATASETS[0];
@@ -53,6 +54,7 @@ export default function App() {
 
   const handleRun = useCallback(async (sqlText: string) => {
     setError(null);
+    setRunning(true);
     try {
       const db = await ensureDb();
       if (!dbReady) {
@@ -85,6 +87,8 @@ export default function App() {
         timestamp: Date.now(),
       };
       setHistory((prev) => [entry, ...prev]);
+    } finally {
+      setRunning(false);
     }
   }, [ensureDb, dbReady, dataset]);
 
@@ -127,6 +131,8 @@ export default function App() {
             result={currentResult}
             error={error}
             dataset={dataset}
+            dbReady={dbReady}
+            running={running}
           />
         }
       />
