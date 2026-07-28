@@ -9,9 +9,9 @@ export async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
   const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
   const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
 
-  const workerUrl = URL.createObjectURL(
-    new Blob([`importScripts("${bundle.mainWorker!}");`], { type: 'text/javascript' }),
-  );
+  const workerScript = await fetch(bundle.mainWorker!);
+  const workerBlob = new Blob([await workerScript.text()], { type: 'text/javascript' });
+  const workerUrl = URL.createObjectURL(workerBlob);
   const worker = new Worker(workerUrl);
   const logger = new duckdb.ConsoleLogger();
   db = new duckdb.AsyncDuckDB(logger, worker);
