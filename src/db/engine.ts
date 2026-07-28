@@ -9,10 +9,14 @@ export async function initDuckDB(): Promise<duckdb.AsyncDuckDB> {
   const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
   const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
 
-  const worker = new Worker(bundle.mainWorker!);
+  const workerUrl = URL.createObjectURL(
+    new Blob([`importScripts("${bundle.mainWorker!}");`], { type: 'text/javascript' }),
+  );
+  const worker = new Worker(workerUrl);
   const logger = new duckdb.ConsoleLogger();
   db = new duckdb.AsyncDuckDB(logger, worker);
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  URL.revokeObjectURL(workerUrl);
 
   return db;
 }
@@ -35,8 +39,13 @@ export async function loadDataset(
 
     for (const table of dataset.tables) {
       const csvUrl = `${basePath}${table.csvPath}`;
+      const resp = await fetch(csvUrl);
+      if (!resp.ok) throw new Error(`Failed to fetch ${csvUrl}: ${resp.status}`);
+      const buffer = await resp.arrayBuffer();
+      const fileName = `${table.name}.csv`;
+      await database.registerFileBuffer(fileName, new Uint8Array(buffer));
       await conn.query(
-        `CREATE TABLE "${table.name}" AS SELECT * FROM read_csv_auto('${csvUrl}')`,
+        `CREATE TABLE "${table.name}" AS SELECT * FROM read_csv_auto('${fileName}')`,
       );
     }
   } finally {

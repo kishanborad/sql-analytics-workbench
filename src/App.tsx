@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import TopBar from './layout/TopBar';
 import SplitPane from './layout/SplitPane';
 import SqlEditor from './editor/SqlEditor';
@@ -44,10 +44,12 @@ export default function App() {
   }, [ensureDb]);
 
   const initialized = useRef(false);
-  if (!initialized.current) {
-    initialized.current = true;
-    handleDatasetChange(DATASETS[0].id);
-  }
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      handleDatasetChange(DATASETS[0].id);
+    }
+  }, [handleDatasetChange]);
 
   const handleRun = useCallback(async (sqlText: string) => {
     setError(null);
