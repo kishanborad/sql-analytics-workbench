@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ProblemBanner } from './ProblemBanner';
 import TopBar from './layout/TopBar';
 import SplitPane from './layout/SplitPane';
 import SqlEditor from './editor/SqlEditor';
@@ -114,6 +115,7 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-navy">
+      <ProblemBanner />
       <TopBar
         dataset={dataset}
         onDatasetChange={handleDatasetChange}
