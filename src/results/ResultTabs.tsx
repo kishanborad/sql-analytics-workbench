@@ -1,6 +1,8 @@
-import ChartPanel from './ChartPanel';
+import { lazy, Suspense } from 'react';
 import DataTable from './DataTable';
 import type { QueryResult } from '../types';
+
+const ChartPanel = lazy(() => import('./ChartPanel'));
 
 interface ResultTabsProps {
   result: QueryResult | null;
@@ -32,7 +34,9 @@ export default function ResultTabs({ result, error, running }: ResultTabsProps) 
       {result && (
         <>
           <div className="h-[45%] min-h-[200px] border-b border-white/[0.08] flex-shrink-0">
-            <ChartPanel result={result} />
+            <Suspense fallback={<div className="flex items-center justify-center h-full text-xs text-dimmed">Loading chart...</div>}>
+              <ChartPanel result={result} />
+            </Suspense>
           </div>
 
           <div className="flex items-center px-3 py-1.5 border-b border-white/[0.08] flex-shrink-0">
