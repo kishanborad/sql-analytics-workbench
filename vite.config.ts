@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/sql-analytics-workbench/',
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
