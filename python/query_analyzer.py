@@ -3,7 +3,6 @@
 import argparse
 import re
 
-
 _JOIN_RE = re.compile(r"\bJOIN\b", re.IGNORECASE)
 _GROUP_BY_RE = re.compile(r"\bGROUP\s+BY\b", re.IGNORECASE)
 _ORDER_BY_RE = re.compile(r"\bORDER\s+BY\b", re.IGNORECASE)
