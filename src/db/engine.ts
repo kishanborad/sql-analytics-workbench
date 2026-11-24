@@ -99,12 +99,14 @@ export async function executeQuery(
 
 export function detectChartType(
   columnTypes: Array<'string' | 'number' | 'date'>,
+  rowCount?: number,
 ): import('../types').ChartType {
   const hasDate = columnTypes.includes('date');
   const numericCount = columnTypes.filter((t) => t === 'number').length;
   const hasString = columnTypes.includes('string');
 
   if (hasDate && numericCount >= 1) return 'line';
+  if (rowCount !== undefined && rowCount > 50 && numericCount >= 2) return 'scatter';
   if (numericCount >= 2 && !hasString) return 'scatter';
   if (hasString && numericCount >= 1) return 'bar';
 
