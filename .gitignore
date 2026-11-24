@@ -1,8 +1,41 @@
+# Node
 node_modules/
 dist/
+*.local
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Python
 .venv/
+venv/
 __pycache__/
 *.pyc
-.DS_Store
-coverage/
+*.pyo
+.pytest_cache/
+.ruff_cache/
 *.egg-info/
+.coverage
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# Local env
+.env
+.env.*
+
+# Cache
+.cache/

@@ -12,7 +12,7 @@
   },
   "keywords": [],
   "author": "Kishan Borad",
-  "license": "ISC",
+  "license": "MIT",
   "description": "Browser-based SQL analytics workbench powered by DuckDB-WASM",
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
