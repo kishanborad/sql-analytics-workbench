@@ -126,7 +126,7 @@ function PieChart({ data, labelCol, valueCol }: { data: Record<string, unknown>[
 
 export default function ChartPanel({ result }: ChartPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const autoType = detectChartType(result.columnTypes);
+  const autoType = detectChartType(result.columnTypes, result.rowCount);
   const [chartType, setChartType] = useState<ChartType>(autoType);
 
   const data = useMemo(() => {
@@ -145,6 +145,22 @@ export default function ChartPanel({ result }: ChartPanelProps) {
   const firstNumber = types.indexOf('number');
   const firstDate = types.indexOf('date');
   const secondNumber = types.indexOf('number', firstNumber + 1);
+
+  // Bar and pie show values largest first, in query order otherwise.
+  const sortedData = useMemo(() => {
+    if ((chartType !== 'bar' && chartType !== 'pie') || firstNumber < 0) return data;
+    return [...data].sort(
+      (a, b) => (Number(b[cols[firstNumber]]) || 0) - (Number(a[cols[firstNumber]]) || 0),
+    );
+  }, [data, chartType, cols, firstNumber]);
+
+  // Short title so the chart says what it plots, for example revenue by category.
+  const chartTitle =
+    chartType === 'scatter' && secondNumber >= 0
+      ? `${cols[secondNumber]} vs ${cols[firstNumber]}`
+      : firstNumber >= 0 && (firstString >= 0 || firstDate >= 0)
+        ? `${cols[firstNumber]} by ${cols[firstString >= 0 ? firstString : firstDate]}`
+        : (cols[firstNumber] ?? 'Chart');
 
   const validForType = (type: ChartType): boolean => {
     const s = firstString >= 0;
@@ -165,10 +181,12 @@ export default function ChartPanel({ result }: ChartPanelProps) {
 
   const compatibleTypes = ALL_CHART_TYPES.filter((ct) => validForType(ct.type));
 
+  // A new result resets to its auto-detected type. Picking a type by hand
+  // does not change result, so a manual pick within a result still works.
   useEffect(() => {
-    if (!validForType(chartType) && compatibleTypes.length > 0) {
-      setChartType(compatibleTypes[0].type);
-    }
+    const auto = detectChartType(result.columnTypes, result.rowCount);
+    setChartType(validForType(auto) ? auto : (compatibleTypes[0]?.type ?? auto));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
 
   const isPie = chartType === 'pie';
@@ -179,16 +197,28 @@ export default function ChartPanel({ result }: ChartPanelProps) {
     const width = containerRef.current.clientWidth - 16;
     const height = Math.min(280, containerRef.current.clientHeight - 16);
 
+    // The plotted numeric column: the second number for scatter, the first otherwise.
+    const yCol = chartType === 'scatter' && secondNumber >= 0 ? cols[secondNumber] : cols[firstNumber];
+    const yMax = data.reduce((max, d) => Math.max(max, Number(d[yCol]) || 0), 0);
+    const plotData = chartType === 'bar' ? sortedData : data;
+
     const plotOptions: Plot.PlotOptions = {
       width,
       height,
+      marginLeft: 72,
       style: {
         background: 'transparent',
         color: '#f4f4f6',
         fontSize: '10px',
       },
       x: { label: null },
-      y: { label: null, grid: true },
+      y: {
+        label: null,
+        grid: true,
+        tickFormat: (d: unknown) =>
+          new Intl.NumberFormat('en', { notation: 'compact' }).format(Number(d)),
+        ...(chartType !== 'heatmap' && yMax > 0 ? { domain: [0, yMax * 1.1] } : {}),
+      },
     };
 
     let plot: SVGSVGElement | HTMLElement;
@@ -199,10 +229,11 @@ export default function ChartPanel({ result }: ChartPanelProps) {
           plot = Plot.plot({
             ...plotOptions,
             marks: [
-              Plot.barY(data, {
+              Plot.barY(plotData, {
                 x: cols[firstString],
                 y: cols[firstNumber],
                 fill: '#818cf8',
+                sort: { x: 'y', reverse: true },
                 title: (d: Record<string, unknown>) => `${d[cols[firstString]]}\n${cols[firstNumber]}: ${d[cols[firstNumber]]}`,
               }),
               Plot.ruleY([0]),
@@ -291,7 +322,7 @@ export default function ChartPanel({ result }: ChartPanelProps) {
     } catch {
       // silently ignore chart rendering errors
     }
-  }, [data, chartType, cols, types, firstString, firstNumber, firstDate, secondNumber, isPie]);
+  }, [data, sortedData, chartType, cols, types, firstString, firstNumber, firstDate, secondNumber, isPie]);
 
   if (compatibleTypes.length === 0) {
     return (
@@ -320,9 +351,11 @@ export default function ChartPanel({ result }: ChartPanelProps) {
         ))}
       </div>
 
+      <div className="px-3 pt-2 text-[11px] font-medium text-surface/80 flex-shrink-0">{chartTitle}</div>
+
       <div className="flex-1 flex items-center justify-center p-3 overflow-auto min-h-0">
         {isPie && firstString >= 0 && firstNumber >= 0 ? (
-          <PieChart data={data} labelCol={cols[firstString]} valueCol={cols[firstNumber]} />
+          <PieChart data={sortedData} labelCol={cols[firstString]} valueCol={cols[firstNumber]} />
         ) : (
           <div ref={containerRef} className="w-full h-full" />
         )}

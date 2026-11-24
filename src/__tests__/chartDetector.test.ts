@@ -22,6 +22,14 @@ describe('detectChartType', () => {
     expect(detectChartType(['string', 'number', 'number'])).toBe('bar');
   });
 
+  it('string + number + number with 831 rows => scatter', () => {
+    expect(detectChartType(['string', 'number', 'number'], 831)).toBe('scatter');
+  });
+
+  it('string + number + number with 5 rows => bar', () => {
+    expect(detectChartType(['string', 'number', 'number'], 5)).toBe('bar');
+  });
+
   it('string + string => bar fallback', () => {
     expect(detectChartType(['string', 'string'])).toBe('bar');
   });
